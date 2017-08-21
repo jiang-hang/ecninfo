@@ -184,9 +184,11 @@
     (kill-buffer)))
 
 
-(global-set-key (kbd "C-c C-p") 'prev-page)
-(global-set-key (kbd "C-c C-n") 'next-page)
-(global-set-key (kbd "C-c C-g") 'go-page)
-(global-set-key (kbd "C-c C-x C-p") 'i-get-report)
+;; (global-set-key (kbd "C-c C-p") 'prev-page)
+;; (global-set-key (kbd "C-c C-n") 'next-page)
+;; (global-set-key (kbd "C-c C-g") 'go-page)
+;; (global-set-key (kbd "C-c C-x C-p") 'i-get-report)
+
+(require 'repview)
 
 (provide 'cninfo)
