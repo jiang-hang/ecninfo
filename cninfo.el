@@ -10,6 +10,8 @@
 (defvar cur-page 1)
 (defvar cur-pdf nil)
 
+(defvar project-root "/home/xuyang/ecninfo/")
+
 (defun get-annual-report-url (code)
   (request
  "http://www.cninfo.com.cn/search/search.jsp"
