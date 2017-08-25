@@ -49,9 +49,10 @@
   "show the matched files at the buffer"
   (interactive)
   (with-current-buffer (get-buffer-create "report-view-files")
-    (shell-command (concat "grep -l "
+    (shell-command (concat "grep -c "
 			   current-keyword
-			   " *txt ")
+			   " *txt | grep -v ':0' | sort -t ':' -n -k 2 -r"
+			   )
 		   (current-buffer))
     (reportview-mode)))
 
