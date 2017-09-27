@@ -137,7 +137,9 @@
 
 
 (defun local-txt-report-exists? (code)
-  (if (file-exists-p (local-txt-report code))
+  (if (and
+       (local-txt-report code)
+       (file-exists-p (local-txt-report code)))
       t
     nil))
 

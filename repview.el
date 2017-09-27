@@ -32,7 +32,7 @@
 (defun report-grep (&optional arg)
   "grep the current-keyword"
   (interactive "P")
-  (shell-command (concat "grep -H "
+  (shell-command (concat "grep -H -E "
 			 current-keyword
 			 (if (= 0 context-line-num)
 			     " "
@@ -49,7 +49,7 @@
   "show the matched files at the buffer"
   (interactive)
   (with-current-buffer (get-buffer-create "report-view-files")
-    (shell-command (concat "grep -c "
+    (shell-command (concat "grep -c -E "
 			   current-keyword
 			   " *txt | grep -v ':0' | sort -t ':' -n -k 2 -r"
 			   )
@@ -81,17 +81,30 @@
 			   (local-report-file code)))))
 
 
+(defun open-txt-file ()
+  (interactive)
+  (unless current-report
+    (error "no current-report is set"))
+  (let ((code (substring current-report 1 7)))
+    (with-current-buffer (get-buffer "report-view")
+      (delete-region (point-min) (point-max))
+      (insert-file-contents (local-txt-report code)))))
+
 (defun get-section (&optional arg)
   "show the interested sections"
-  (interactive "Nplease select the item[1]:公司业务概要[2]:核心竞争力")
-  (cond 
-	((= arg 1)  (shell-command (concat "grep -E -n -H -A 50 '公司业务概要' "
-				   current-report)
-			   (current-buffer)))
-	((= arg 2)  (shell-command (concat "grep -E -n -H -A 50 '核心竞争力' "
-				   current-report)
-			   (current-buffer)))))
-
+  (interactive "N")
+  ;;;; "Nplease select the item[1]:公司业务概要[2]:核心竞争力")
+  (with-current-buffer (get-buffer "report-view")
+    (let ((section "公司业务概要"))
+      (cond 
+	((= arg 1)  (setq section "公司业务概要"))  
+	((= arg 2)  (setq section "核心竞争力"))
+	((= arg 3)  (setq section "经营分析")))
+      (goto-char (point-min))
+      (isearch-forward nil 1)
+      (isearch-yank-string section))))
+      
+	
 
 (defun report-highlight-key (&optional arg)
   (unhighlight-regexp current-keyword)
@@ -184,6 +197,7 @@
 (define-key reportview-mode-map   "s" 'save-groups)
 (define-key reportview-mode-map   "a" 'add-code-to-bankuai)
 (define-key reportview-mode-map   "p" 'open-pdf-file)
+(define-key reportview-mode-map   "r" 'open-txt-file)
 (define-key reportview-mode-map   (kbd "<f5>") 'move-and-grep)
 
 
