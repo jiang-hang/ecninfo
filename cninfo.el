@@ -1,27 +1,46 @@
 (require 's)
 (require 'request)
+(require 'enlive)
 
 ;;codes is defined there
 (require 'allcodes)
 
 (defvar current-report-url nil)
 (defvar target-dir "/home/xuyang/annualReports/")
+(defvar report-year 2016)
 (defvar url-base "http://www.cninfo.com.cn")
 (defvar cur-page 1)
 (defvar cur-pdf nil)
 
 (defvar project-root "/home/xuyang/ecninfo/")
 
+
+(defun update-target-dir (y)
+  (setq target-dir
+	(concat "/home/xuyang/annualReports/"
+		(number-to-string y) "/")))
+
+(defun set-report-year (y fetch-or-view)
+  (interactive "ninput the year for report (eg:2017):\nnthe 1 for fetch and 2 for view")
+  (setq report-year y)
+  (update-target-dir report-year)
+  (setq default-directory target-dir)
+  (if (= 2 fetch-or-view)
+      (setq default-directory (concat target-dir "txt/"))))
+
+
 (defun get-annual-report-url (code)
   (request
- "http://www.cninfo.com.cn/search/search.jsp"
+;;;   "http://www.cninfo.com.cn/search/search.jsp"
+   "http://www.cninfo.com.cn/search/stockfulltext.jsp"
  :type "POST"
  :data `(("noticeType" . "010301")
-	 ("orderby" . "date11")
 	 ("stockCode" . ,code)
-	 ("startTime" . "2017-01-01")
-	 ("endTime" . "2017-07-01")
-	 ("pageNo" . "1"))
+	 ("startTime" . ,(concat (number-to-string (+ 1 report-year)) "-01-01"))
+	 ("endTime" . ,(concat (number-to-string (+ 1 report-year)) "-07-01"))
+	 ("Submit1.x" . "26")
+	 ("Submit1.y" . "10")
+	 )
  :parser (lambda ()
 	   (decode-coding-region (point-min) (point-max) 'gbk)
 	   (libxml-parse-html-region (point-min) (point-max)))
@@ -31,8 +50,8 @@
     (setq current-report-url
      (loop for x in (enlive-query-all data [td.qsgg > a])
 	   unless (s-contains? "摘要" (enlive-text x))
-	   collect (enlive-attr x 'href))))))
-  current-report-url)
+	   collect (enlive-attr x 'href)))
+  current-report-url))))
 
 
 (defun download-file (url target)
@@ -40,7 +59,8 @@
    (concat "wget " "-O " target " " url))) 
 
 (defun local-report-file (code)
-  (concat target-dir "pdf/r" code "-2016.PDF"))
+  (concat target-dir "pdf/r" code "-" (number-to-string report-year)
+	  ".PDF"))
 
 (defun local-report-exists? (code)
   (if (file-exists-p (local-report-file code))
@@ -49,7 +69,8 @@
 
 
 (defun local-gaiyao-file (code)
-  (concat target-dir "gaiyao/gy" code "-2016.txt"))
+  (concat target-dir "gaiyao/gy" code "-"
+	  (number-to-string report-year) ".txt"))
 
 (defun get-report (code)
   (unless (local-report-exists? code)
@@ -145,7 +166,7 @@
 
 (defun local-txt-report-with-name (code)
   ;;get the name firstly
-  (concat target-dir "txt/r" code "-2016-" 
+  (concat target-dir "txt/r" code "-" (number-to-string report-year) "-" 
 	  (cdr (assoc code codes))
 	  ".txt"))
 

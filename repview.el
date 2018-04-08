@@ -94,12 +94,15 @@
   "show the interested sections"
   (interactive "N")
   ;;;; "Nplease select the item[1]:公司业务概要[2]:核心竞争力")
+  (switch-to-buffer "report-view")
   (with-current-buffer (get-buffer "report-view")
     (let ((section "公司业务概要"))
       (cond 
-	((= arg 1)  (setq section "公司业务概要"))  
-	((= arg 2)  (setq section "核心竞争力"))
-	((= arg 3)  (setq section "经营分析")))
+       ((= arg 1)  (setq section "公司业务概要"))  
+       ((= arg 2)  (setq section "核心竞争力"))
+       ((= arg 3)  (setq section "经营情况讨论与分析"))
+       ((= arg 4)  (setq section "分产品"))
+       )
       (goto-char (point-min))
       (isearch-forward nil 1)
       (isearch-yank-string section))))
@@ -161,15 +164,23 @@
 	       (print (car x) (current-buffer))
 	       ))))
 
-(defun move-and-grep ()
+(defun move-down-and-grep ()
   (interactive)
   (with-current-buffer (get-buffer "report-view-files")
     (next-line)
     (re-grep-the-file)))
 
+(defun move-up-and-grep ()
+  (interactive)
+  (with-current-buffer (get-buffer "report-view-files")
+    (previous-line)
+    (re-grep-the-file)))
+
+
 (defun report-view ()
   (interactive)
-  (setq default-directory "~/annualReports/txt/")
+  (update-target-dir report-year)
+  (setq default-directory (concat target-dir "txt/"))
   (let ((buffer (get-buffer-create "report-view")))
     (get-buffer-create "keywords")
     (get-buffer-create "codes")
@@ -198,7 +209,9 @@
 (define-key reportview-mode-map   "a" 'add-code-to-bankuai)
 (define-key reportview-mode-map   "p" 'open-pdf-file)
 (define-key reportview-mode-map   "r" 'open-txt-file)
-(define-key reportview-mode-map   (kbd "<f5>") 'move-and-grep)
+(define-key reportview-mode-map   "y" 'set-report-year)
+(define-key reportview-mode-map   (kbd "<f5>") 'move-down-and-grep)
+(define-key reportview-mode-map   (kbd "<f6>") 'move-up-and-grep)
 
 
 
