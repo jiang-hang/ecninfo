@@ -7,7 +7,7 @@
 
 (defvar current-report-url nil)
 (defvar target-dir "/home/xuyang/annualReports/")
-(defvar report-year 2016)
+(defvar report-year 2017)
 (defvar url-base "http://www.cninfo.com.cn")
 (defvar cur-page 1)
 (defvar cur-pdf nil)
@@ -68,10 +68,6 @@
     nil))
 
 
-(defun local-gaiyao-file (code)
-  (concat target-dir "gaiyao/gy" code "-"
-	  (number-to-string report-year) ".txt"))
-
 (defun get-report (code)
   (unless (local-report-exists? code)
     (progn (get-annual-report-url code)
@@ -93,41 +89,13 @@
   (get-report code))
 
 
-(defun page (nu)
-  (with-current-buffer (get-buffer-create "pdf-report")
-    (delete-region (point-min) (point-max))
-    (shell-command (concat "pdf2txt " "-p "
-			   (number-to-string nu)
-			   " "
-			   cur-pdf)
-		   (get-buffer "pdf-report"))))
-
-
-  
-(defun prev-page (&optional n)
-  (interactive "p")
-  (unless n (setq n 1))
-  (if (> cur-page n)
-      (progn (setq cur-page (- cur-page n))
-	     (page cur-page))))
-
-(defun next-page (&optional n)
-  (interactive "p")
-    (unless n (setq n 1))
-      (setq cur-page (+ cur-page n))
-      (page cur-page))
-
-(defun go-page (nu)
-  (interactive "ngo to page[1]:")
-  (if nu (page nu)))
-
-
 (defun i-get-report (code)
   (interactive "sinput the code like 600309:")
   (get-report code))
 
 (defun get-report-and-wait (code)
   (unless (local-report-exists? code)
+    (message "fetch %s" code)
     (get-report code)
     (sleep-for 25)))
 
@@ -152,10 +120,6 @@
   (car (directory-files (concat target-dir "txt/")
 		   t
 		   (concat "r" code ".*"))))
-
-;;(defun local-txt-report-with-name (code)
-;;  (concat target-dir "txt/r" code 
-
 
 (defun local-txt-report-exists? (code)
   (if (and
@@ -186,33 +150,20 @@
       (rename-file (local-txt-report code)
 		   (local-txt-report-with-name code)))))
 
-      
-		     
 
-(defun collect-gaiyao (code)
-  (interactive "sinput the code like 600309:")
-  (unless (local-report-exists? code)
-      (progn (get-report code)
-	     (sleep-for 15)))
-  (with-current-buffer  (get-buffer-create "pdf-report-raw")
-    (delete-region (point-min) (point-max))
-    (shell-command (concat "pdf2txt -m 50 " 
-			 (local-report-file code))
-		   (get-buffer "pdf-report-raw"))
-    (goto-char (point-min))
-    (let ((pos1 (search-forward "公司业务概要" nil t 2))
-	  (pos2 (search-forward "经营情况讨论与分析" nil t 1)))
-      (copy-to-buffer (get-buffer-create "pdf-report")
-		      pos1 pos2)))
-  (with-current-buffer  (get-buffer "pdf-report")
-    (write-region (point-min) (point-max) (local-gaiyao-file code))
-    (kill-buffer)))
+;;step 1
+(defun fetch-all-reports ()
+  (interactive "")
+  (dolist (code codes)
+    (get-report-and-wait (car code))))
 
-
-;; (global-set-key (kbd "C-c C-p") 'prev-page)
-;; (global-set-key (kbd "C-c C-n") 'next-page)
-;; (global-set-key (kbd "C-c C-g") 'go-page)
-;; (global-set-key (kbd "C-c C-x C-p") 'i-get-report)
+;;step 2
+(defun convert-all-pdf-to-txt ()
+  (interactive "")
+  (dolist (code codes)
+    (message "convert code %s" (car code))
+    (pdf-to-txt (car code))
+    (rename-txt (car code))))
 
 (require 'repview)
 
