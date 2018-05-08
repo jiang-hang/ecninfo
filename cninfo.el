@@ -166,5 +166,6 @@
     (rename-txt (car code))))
 
 (require 'repview)
+(require 'markedview)
 
 (provide 'cninfo)
